@@ -1,7 +1,9 @@
 package com.AMO.autismGame.Member;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import org.springframework.data.repository.CrudRepository;
+import java.util.Optional;
 
-public interface MemberRepository extends CrudRepository<Member, Long> {
+public interface MemberRepository extends JpaRepository<Member, Integer> {
+    Optional<Member> findByUserIdentifier(String userIdentifier);
 }
