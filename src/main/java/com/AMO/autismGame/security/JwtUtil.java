@@ -10,7 +10,6 @@ import java.util.Date;
 @Component
 public class JwtUtil {
     private static final String SECRET_KEY = "your_very_secret_key_which_should_be_long"; // 실제 환경에서는 환경 변수로 관리!
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 24시간
 
     private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
 
