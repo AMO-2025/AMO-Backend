@@ -16,4 +16,5 @@ public class Member {
     public int id;
     public String userIdentifier;
     public String phoneNumber;
+    public String nickname;
 }
