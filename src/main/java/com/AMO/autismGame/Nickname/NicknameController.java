@@ -1,5 +1,6 @@
 package com.AMO.autismGame.Nickname;
 
+import com.AMO.autismGame.Nickname.NicknameService;
 import com.AMO.autismGame.Member.Member;
 import com.AMO.autismGame.Member.MemberRepository;
 import com.AMO.autismGame.security.JwtUtil;
@@ -19,6 +20,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class NicknameController {
     private final MemberRepository memberRepository;
+    private final NicknameService nicknameService;
     private final JwtUtil jwtUtil;
 
     @PostMapping("/api/auth/nickname")
@@ -42,6 +44,8 @@ public class NicknameController {
             memberRepository.save(member); // DB 반영
 
             // 🟢 5. 성공 응답 반환
+            nicknameService.initializeDefaultMapsForMember(member);
+
             Map<String, String> response = new HashMap<>();
             response.put("status", "success");
             response.put("message", "Nickname set successfully");
@@ -54,5 +58,4 @@ public class NicknameController {
             return ResponseEntity.badRequest().body(response);
         }
     }
-
 }
