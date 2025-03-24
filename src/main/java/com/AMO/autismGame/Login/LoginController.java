@@ -17,7 +17,7 @@ public class LoginController {
     private final MemberRepository memberRepository;
     private final JwtUtil jwtUtil;
 
-    @PostMapping("/api/auth/identify")
+    @GetMapping("/api/auth/identify")
     public ResponseEntity<Map<String, String>> login(
             @RequestBody Map<String, String> request) {
 
