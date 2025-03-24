@@ -8,4 +8,7 @@ import java.util.Optional;
 public interface MemberMapRepository extends JpaRepository<MemberMap, Integer> {
     List<MemberMap> findByMember(Member member);
     Optional<MemberMap> findByMemberAndMap(Member member, MapEntity map);
+
+    Optional<MemberMap> findByMemberAndMap_MapID(Member member, String s);
+
 }
