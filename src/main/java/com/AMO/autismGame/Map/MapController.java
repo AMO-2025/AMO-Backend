@@ -1,5 +1,6 @@
 package com.AMO.autismGame.Map;
 
+import com.AMO.autismGame.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,16 +13,13 @@ import java.util.Map;
 public class MapController {
 
     private final MapService mapService;
+    private final JwtUtil jwtUtil;
 
     @GetMapping("/select")
-    public ResponseEntity<Map<String, Object>> getUnlockedMaps(@RequestBody Map<String, String> request) {
-        String userIdentifier = request.get("userIdentifier");
+    public ResponseEntity<Map<String, Object>> selectMap(@RequestHeader("Authorization") String tokenHeader) {
+        String token = tokenHeader.replace("Bearer ", "");
+        String userIdentifier = jwtUtil.extractUserIdentifier(token);
         Map<String, Object> response = mapService.getUnlockedMapInfo(userIdentifier);
-
-        if ("error".equals(response.get("status"))) {
-            return ResponseEntity.badRequest().body(response);
-        }
-
         return ResponseEntity.ok(response);
     }
 }
