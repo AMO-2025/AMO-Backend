@@ -50,12 +50,20 @@ public class NicknameService {
 
     @Transactional
     public void initializeDefaultMapsForMember(Member member) {
+        // 이미 초기화되었는지 확인
+        boolean alreadyInitialized = memberMapRepository.existsByMember(member);
+
+        if (alreadyInitialized) {
+            return; // 이미 있으면 아무 것도 하지 않음
+        }
+
+        // 없는 경우에만 4개 생성
         List<MapEntity> maps = mapRepository.findAll();
         for (MapEntity map : maps) {
             MemberMap memberMap = new MemberMap();
             memberMap.setMember(member);
             memberMap.setMap(map);
-            memberMap.setUnlocked("1".equals(map.getMapID()));
+            memberMap.setUnlocked("1".equals(map.getMapID())); // mapID가 "1"이면 true
             memberMapRepository.save(memberMap);
         }
     }

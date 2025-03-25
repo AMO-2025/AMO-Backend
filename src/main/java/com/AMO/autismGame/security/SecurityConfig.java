@@ -1,6 +1,5 @@
 package com.AMO.autismGame.security;
 
-import jakarta.servlet.Filter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,19 +21,18 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/**", // 로그인은 인증 없이 허용
+                                "/api/auth/**",        // 로그인 및 토큰 검증은 인증 없이 접근 가능
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers(
-                                "/api/map/**",      // 맵 관련 기능
-                                "/api/nickname/**"  // 닉네임 변경
-                        ).authenticated()  // ✅ 이 부분은 인증 필요!
+                                "/api/map/**",         // 맵 관련 API
+                                "/api/nickname/**"     // 닉네임 설정 등
+                        ).authenticated()            // ✅ 인증 필요
                         .anyRequest().permitAll()
                 )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); // 필터 등록
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); // 🔐 JWT 필터 추가
 
         return http.build();
     }
 }
-
