@@ -14,30 +14,26 @@ import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
 public class LoginController {
-    private final MemberRepository memberRepository;
-    private final JwtUtil jwtUtil;
 
-    @GetMapping("/api/auth/identify")
-    public ResponseEntity<Map<String, String>> login(
-            @RequestBody Map<String, String> request) {
+    private final LoginService loginService;
 
+    @PostMapping("/api/auth/identify")
+    public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> request) {
         String userIdentifier = request.get("userIdentifier");
         String phoneNumber = request.get("phoneNumber");
-        Map<String, String> response = new HashMap<>();
+        Map<String, String> response = loginService.login(userIdentifier, phoneNumber);
 
-        Optional<Member> checkMember = memberRepository.findByUserIdentifier(userIdentifier);
+        return "error".equals(response.get("status")) ?
+                ResponseEntity.badRequest().body(response) :
+                ResponseEntity.ok(response);
+    }
 
-        if (checkMember.isPresent() && checkMember.get().getPhoneNumber().equals(phoneNumber)) {
-            String token = jwtUtil.generateToken(userIdentifier);
-            response.put("status", "success");
-            response.put("message", "User identified successfully");
-            response.put("token", token);
-            return ResponseEntity.ok(response);  // ✅ ResponseEntity 사용하여 반환
-        } else {
-            response.put("status", "error");
-            response.put("message", "Invalid user identifier");
-            return ResponseEntity.badRequest().body(response);  // ✅ 실패 시 400 Bad Request 반환
-        }
+    @GetMapping("/api/auth/validate")
+    public ResponseEntity<Map<String, String>> validateToken(@RequestHeader("Authorization") String tokenHeader) {
+        Map<String, String> response = loginService.validateToken(tokenHeader);
+        return "error".equals(response.get("status")) ?
+                ResponseEntity.status(401).body(response) :
+                ResponseEntity.ok(response);
     }
 }
 
