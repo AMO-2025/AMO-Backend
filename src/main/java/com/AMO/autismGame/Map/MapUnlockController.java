@@ -2,6 +2,7 @@ package com.AMO.autismGame.Map;
 
 import com.AMO.autismGame.Member.Member;
 import com.AMO.autismGame.Member.MemberRepository;
+import com.AMO.autismGame.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,10 +17,15 @@ public class MapUnlockController {
     private final MemberRepository memberRepository;
     private final MemberMapRepository memberMapRepository;
     private final MapRepository mapRepository;
+    private final JwtUtil jwtUtil;
 
     @PostMapping("/unlock")
-    public ResponseEntity<Map<String, Object>> unlockNextMap(@RequestBody Map<String, Object> request) {
-        String userIdentifier = (String) request.get("userIdentifier");
+    public ResponseEntity<Map<String, Object>> unlockNextMap(
+            @RequestHeader("Authorization") String tokenHeader,
+            @RequestBody Map<String, Object> request) {
+
+        String token = tokenHeader.replace("Bearer ", "");
+        String userIdentifier = jwtUtil.extractUserIdentifier(token);
         int clearedMapID = (int) request.get("clearedMapID");
 
         Optional<Member> memberOpt = memberRepository.findByUserIdentifier(userIdentifier);
@@ -41,7 +47,7 @@ public class MapUnlockController {
         }
 
         int nextMapID = clearedMapID + 1;
-        String nextMapIDString = String.valueOf(nextMapID); // MapInfo에서 mapID가 String이면 필요함
+        String nextMapIDString = String.valueOf(nextMapID);
 
         Optional<MapEntity> nextMapOpt = mapRepository.findByMapID(nextMapIDString);
         if (nextMapOpt.isEmpty()) {
@@ -71,13 +77,16 @@ public class MapUnlockController {
             memberMapRepository.save(newUnlock);
         }
 
-        return ResponseEntity.ok(Map.of(
-                "status", "success",
-                "message", "Next map unlocked",
-                "unlockedMap", Map.of(
-                        "mapID", nextMap.getMapID(),
-                        "mapName", nextMap.getMapName()
-                )
-        ));
+        Map<String, Object> unlockedMapInfo = new HashMap<>();
+        unlockedMapInfo.put("mapID", nextMap.getMapID());
+        unlockedMapInfo.put("mapName", nextMap.getMapName());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "Next map unlocked");
+        response.put("clearedMapID", clearedMapID);
+        response.put("unlockedMap", unlockedMapInfo);
+
+        return ResponseEntity.ok(response);
     }
 }
