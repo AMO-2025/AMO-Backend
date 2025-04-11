@@ -8,5 +8,5 @@ import lombok.Getter;
 public class MapDto {
     private int mapID;
     private String mapName;
-    private boolean isUnlocked; // 해금 여부
+    private boolean isUnlocked;
 }

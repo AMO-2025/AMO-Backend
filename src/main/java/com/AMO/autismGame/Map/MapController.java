@@ -19,7 +19,7 @@ public class MapController {
     public ResponseEntity<Map<String, Object>> selectMap(@RequestHeader("Authorization") String tokenHeader) {
         String token = tokenHeader.replace("Bearer ", "");
         String userIdentifier = jwtUtil.extractUserIdentifier(token);
-        Map<String, Object> response = mapService.getUnlockedMapInfo(userIdentifier);
+        Map<String, Object> response = mapService.getMapInfo(userIdentifier);
         return ResponseEntity.ok(response);
     }
 }
