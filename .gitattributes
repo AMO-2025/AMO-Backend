@@ -1,3 +1,37 @@
-/gradlew text eol=lf
-*.bat text eol=crlf
+# Handle line endings automatically for files detected as text
+* text=auto
+
+# These files are text and should be normalized (Convert CRLF => LF)
+*.java text
+*.gradle text
+*.properties text
+*.xml text
+*.yml text
+*.md text
+
+# These files are binary and should be left untouched
 *.jar binary
+*.war binary
+*.ear binary
+*.class binary
+*.dll binary
+*.exe binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.mov binary
+*.mp4 binary
+*.mp3 binary
+*.flv binary
+*.fla binary
+*.swf binary
+*.gz binary
+*.zip binary
+*.7z binary
+*.ttf binary
+*.eot binary
+*.woff binary
+*.pyc binary
+*.pdf binary

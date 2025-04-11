@@ -63,7 +63,8 @@ public class NicknameService {
             MemberMap memberMap = new MemberMap();
             memberMap.setMember(member);
             memberMap.setMap(map);
-            memberMap.setUnlocked("1".equals(map.getMapID())); // mapID가 "1"이면 true
+            // 첫 번째 맵(집)은 기본적으로 열려있고, 나머지는 잠겨있음
+            memberMap.setUnlocked("1".equals(map.getMapID()));
             memberMapRepository.save(memberMap);
         }
     }
