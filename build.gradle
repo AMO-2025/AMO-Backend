@@ -42,7 +42,3 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
-
-jar {
-	archiveFileName = "autismgame.jar"
-}
