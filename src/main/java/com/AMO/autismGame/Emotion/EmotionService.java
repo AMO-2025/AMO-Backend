@@ -26,7 +26,7 @@ public class EmotionService {
     private final MemberRepository memberRepository;
     private final AmazonS3Client amazonS3Client;
 
-    @Value("${cloud.aws.s3.bucket}")
+    @Value("${SPRING_CLOUD_AWS_S3_BUCKET}")
     private String bucket;
 
     private static final java.util.List<String> VALID_EMOTIONS = Arrays.asList("happy", "sad", "angry", "surprised");
