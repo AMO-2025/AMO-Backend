@@ -1,7 +1,13 @@
 HELP.md
 .gradle
 build/
+*.jar
+
+# 환경변수 파일 무시
 .env
+*.env
+.env.*
+
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
