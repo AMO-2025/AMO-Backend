@@ -28,7 +28,7 @@ public class LoginService {
             response.put("token", token);
         } else {
             response.put("status", "error");
-            response.put("message", "Invalid user identifier");
+            response.put("message", "Invalid user identifier or phone number");
         }
 
         return response;

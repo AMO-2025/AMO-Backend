@@ -1,38 +1,41 @@
 package com.AMO.autismGame.config;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
 
+@Getter
 @Configuration
 public class S3Config {
 
-    @Value("${SPRING_CLOUD_AWS_CREDENTIALS_ACCESS_KEY}")
-    private String accessKey;
+    private final String bucketName;
+    private final String accessKey;
+    private final String secretKey;
+    private final String region;
 
-    @Value("${SPRING_CLOUD_AWS_CREDENTIALS_SECRET_KEY}")
-    private String secretKey;
-
-    @Value("${SPRING_CLOUD_AWS_REGION_STATIC}")
-    private String region;
-
-    @Value("${SPRING_CLOUD_AWS_S3_BUCKET}")
-    private String bucketName;
+    public S3Config(
+            @Value("${s3.bucket.name}") String bucketName,
+            @Value("${spring.cloud.aws.credentials.access-key}") String accessKey,
+            @Value("${spring.cloud.aws.credentials.secret-key}") String secretKey,
+            @Value("${spring.cloud.aws.region}") String region) {
+        this.bucketName = bucketName;
+        this.accessKey = accessKey;
+        this.secretKey = secretKey;
+        this.region = region;
+    }
 
     @Bean
-    public AmazonS3Client amazonS3Client() {
-        BasicAWSCredentials awsCredentials = new BasicAWSCredentials(accessKey, secretKey);
-        return (AmazonS3Client) AmazonS3ClientBuilder.standard()
-                .withRegion(region)
-                .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
+    @org.springframework.context.annotation.Profile("!test")
+    public S3Client s3Client() {
+        return S3Client.builder()
+                .region(Region.of(region))
+                .credentialsProvider(StaticCredentialsProvider.create(
+                        AwsBasicCredentials.create(accessKey, secretKey)))
                 .build();
     }
-
-    public String getBucketName() {
-        return bucketName;
-    }
-} 
+}

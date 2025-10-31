@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@Table(name = "game_sessions")
-public class GameSession {
+@Table(name = "emotion_choice_game_sessions")
+public class EmotionChoiceGameSession {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,18 +26,12 @@ public class GameSession {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private GameType gameType;
+    private Emotion targetEmotion;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Emotion targetEmotion; // NPC가 요구하는 감정
+    private Emotion userEmotion;
 
-    @Enumerated(EnumType.STRING)
-    private Emotion userEmotion; // 사용자가 선택하거나 인식된 감정
-
-    private boolean isCorrect; // 정답 여부
-
-    private String s3ImageKey; // S3에 저장된 이미지 키 (게임 2번용만)
+    private boolean isCorrect;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
