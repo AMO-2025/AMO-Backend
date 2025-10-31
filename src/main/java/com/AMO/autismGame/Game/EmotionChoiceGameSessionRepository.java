@@ -9,5 +9,5 @@ public interface EmotionChoiceGameSessionRepository extends JpaRepository<Emotio
     long countByMember(Member member);
     long countByMemberAndIsCorrect(Member member, boolean isCorrect);
     List<EmotionChoiceGameSession> findByMember(Member member);
-    List<EmotionChoiceGameSession> findByMemberAndNpc_MapID(Member member, String mapID);
+
 }

@@ -9,5 +9,5 @@ public interface FacePhotoGameSessionRepository extends JpaRepository<FacePhotoG
     long countByMember(Member member);
     long countByMemberAndIsCorrect(Member member, boolean isCorrect);
     List<FacePhotoGameSession> findByMember(Member member);
-    List<FacePhotoGameSession> findByMemberAndNpc_MapID(Member member, String mapID);
+
 }

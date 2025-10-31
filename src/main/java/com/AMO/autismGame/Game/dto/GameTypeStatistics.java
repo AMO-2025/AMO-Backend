@@ -4,11 +4,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Map;
+
 @Getter
 @Setter
 @Builder
-public class GameStatisticsDto {
+public class GameTypeStatistics {
     private long totalGames;
     private long correctAnswers;
-    private double accuracy; // 정확도 (퍼센트)
+    private double overallAccuracy;
+    private Map<String, EmotionStatistic> emotionStatistics;
 }

@@ -201,141 +201,90 @@ public class GameService {
         return FacePhotoGameResponseDto.builder().success(false).message(message).build();
     }
 
-    public GameStatisticsDto getGameStatistics(String userIdentifier) {
+    public DetailedGameStatisticsDto getGameStatistics(String userIdentifier) {
         Optional<Member> memberOpt = memberRepository.findByUserIdentifier(userIdentifier);
         if (memberOpt.isEmpty()) {
             return null;
         }
         Member member = memberOpt.get();
-
-        long totalGames = emotionChoiceGameSessionRepository.countByMember(member) + facePhotoGameSessionRepository.countByMember(member);
-        long correctAnswers = emotionChoiceGameSessionRepository.countByMemberAndIsCorrect(member, true) + facePhotoGameSessionRepository.countByMemberAndIsCorrect(member, true);
-
-        double accuracy = totalGames > 0 ? (double) correctAnswers / totalGames * 100 : 0;
-
-        return GameStatisticsDto.builder()
-            .totalGames(totalGames)
-            .correctAnswers(correctAnswers)
-            .accuracy(accuracy)
-            .build();
-    }
-
-    public Map<String, Object> getGameHistory(String userIdentifier) {
-        Optional<Member> memberOpt = memberRepository.findByUserIdentifier(userIdentifier);
-        if (memberOpt.isEmpty()) {
-            return null;
-        }
-        Member member = memberOpt.get();
-
-        List<Map<String, Object>> gameHistory = new ArrayList<>();
 
         List<EmotionChoiceGameSession> emotionChoiceGames = emotionChoiceGameSessionRepository.findByMember(member);
-        for (EmotionChoiceGameSession session : emotionChoiceGames) {
-            gameHistory.add(convertEmotionChoiceGameSessionToMap(session));
-        }
-
         List<FacePhotoGameSession> facePhotoGames = facePhotoGameSessionRepository.findByMember(member);
-        for (FacePhotoGameSession session : facePhotoGames) {
-            gameHistory.add(convertFacePhotoGameSessionToMap(session));
-        }
 
-        gameHistory.sort(Comparator.comparing((Map<String, Object> m) -> (LocalDateTime) m.get("createdAt")).reversed());
+        GameTypeStatistics emotionChoiceStats = calculateEmotionChoiceStatistics(emotionChoiceGames);
+        GameTypeStatistics facePhotoStats = calculateFacePhotoStatistics(facePhotoGames);
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("userIdentifier", userIdentifier);
-        result.put("totalGames", gameHistory.size());
-
-        Map<String, Long> gameTypeStats = gameHistory.stream()
-            .collect(Collectors.groupingBy(m -> (String) m.get("gameType"), Collectors.counting()));
-        result.put("gameTypeStats", gameTypeStats);
-
-        Map<String, Long> mapStats = gameHistory.stream()
-            .collect(Collectors.groupingBy(m -> (String) m.get("mapID"), Collectors.counting()));
-        result.put("mapStats", mapStats);
-
-        Map<String, Long> npcStats = gameHistory.stream()
-            .collect(Collectors.groupingBy(m -> (String) m.get("npcID"), Collectors.counting()));
-        result.put("npcStats", npcStats);
-
-        List<Map<String, Object>> recentGames = gameHistory.stream()
-            .limit(10)
-            .collect(Collectors.toList());
-        result.put("recentGames", recentGames);
-
-        return result;
+        return DetailedGameStatisticsDto.builder()
+                .emotionChoiceGame(emotionChoiceStats)
+                .facePhotoGame(facePhotoStats)
+                .build();
     }
 
-    public Map<String, Object> getGameHistoryByMap(String userIdentifier, String mapID) {
-        Optional<Member> memberOpt = memberRepository.findByUserIdentifier(userIdentifier);
-        if (memberOpt.isEmpty()) {
-            return null;
-        }
-        Member member = memberOpt.get();
-
-        List<Map<String, Object>> gameHistory = new ArrayList<>();
-
-        List<EmotionChoiceGameSession> emotionChoiceGames = emotionChoiceGameSessionRepository.findByMemberAndNpc_MapID(member, mapID);
-        for (EmotionChoiceGameSession session : emotionChoiceGames) {
-            gameHistory.add(convertEmotionChoiceGameSessionToMap(session));
+    private GameTypeStatistics calculateEmotionChoiceStatistics(List<EmotionChoiceGameSession> sessions) {
+        Map<String, EmotionStatistic> emotionStatistics = new HashMap<>();
+        for (Emotion emotion : Emotion.values()) {
+            emotionStatistics.put(emotion.name().toLowerCase(), new EmotionStatistic(0, 0, 0));
         }
 
-        List<FacePhotoGameSession> facePhotoGames = facePhotoGameSessionRepository.findByMemberAndNpc_MapID(member, mapID);
-        for (FacePhotoGameSession session : facePhotoGames) {
-            gameHistory.add(convertFacePhotoGameSessionToMap(session));
+        for (EmotionChoiceGameSession session : sessions) {
+            String emotionName = session.getTargetEmotion().name().toLowerCase();
+            EmotionStatistic statistic = emotionStatistics.get(emotionName);
+            statistic.setTotal(statistic.getTotal() + 1);
+            if (session.isCorrect()) {
+                statistic.setCorrect(statistic.getCorrect() + 1);
+            }
         }
 
-        gameHistory.sort(Comparator.comparing((Map<String, Object> m) -> (LocalDateTime) m.get("createdAt")).reversed());
+        long totalGames = sessions.size();
+        long correctAnswers = sessions.stream().filter(EmotionChoiceGameSession::isCorrect).count();
+        double overallAccuracy = totalGames > 0 ? (double) correctAnswers / totalGames * 100 : 0;
 
-        Map<String, Object> mapHistoryResult = new HashMap<>();
-        mapHistoryResult.put("userIdentifier", userIdentifier);
-        mapHistoryResult.put("mapID", mapID);
-        mapHistoryResult.put("totalGames", gameHistory.size());
+        emotionStatistics.forEach((key, statistic) -> {
+            if (statistic.getTotal() > 0) {
+                statistic.setAccuracy((double) statistic.getCorrect() / statistic.getTotal() * 100);
+            }
+        });
 
-        long correctAnswers = gameHistory.stream()
-            .filter(m -> (boolean) m.get("isCorrect"))
-            .count();
-        double accuracy = gameHistory.size() > 0 ? (double) correctAnswers / gameHistory.size() * 100 : 0;
-        mapHistoryResult.put("correctAnswers", correctAnswers);
-        mapHistoryResult.put("accuracy", accuracy);
-
-        Map<String, Long> gameTypeStats = gameHistory.stream()
-            .collect(Collectors.groupingBy(m -> (String) m.get("gameType"), Collectors.counting()));
-        mapHistoryResult.put("gameTypeStats", gameTypeStats);
-
-        Map<String, Long> npcStats = gameHistory.stream()
-            .collect(Collectors.groupingBy(m -> (String) m.get("npcID"), Collectors.counting()));
-        mapHistoryResult.put("npcStats", npcStats);
-
-        mapHistoryResult.put("detailedGames", gameHistory);
-
-        return mapHistoryResult;
+        return GameTypeStatistics.builder()
+                .totalGames(totalGames)
+                .correctAnswers(correctAnswers)
+                .overallAccuracy(overallAccuracy)
+                .emotionStatistics(emotionStatistics)
+                .build();
     }
 
-    private Map<String, Object> convertEmotionChoiceGameSessionToMap(EmotionChoiceGameSession session) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("sessionId", session.getId());
-        map.put("gameType", "EMOTION_CHOICE");
-        map.put("targetEmotion", session.getTargetEmotion().name());
-        map.put("userEmotion", session.getUserEmotion() != null ? session.getUserEmotion().name() : null);
-        map.put("isCorrect", session.isCorrect());
-        map.put("npcID", session.getNpc().getNpcID());
-        map.put("mapID", session.getNpc().getMapID());
-        map.put("createdAt", session.getCreatedAt());
-        return map;
+    private GameTypeStatistics calculateFacePhotoStatistics(List<FacePhotoGameSession> sessions) {
+        Map<String, EmotionStatistic> emotionStatistics = new HashMap<>();
+        for (Emotion emotion : Emotion.values()) {
+            emotionStatistics.put(emotion.name().toLowerCase(), new EmotionStatistic(0, 0, 0));
+        }
+
+        for (FacePhotoGameSession session : sessions) {
+            String emotionName = session.getTargetEmotion().name().toLowerCase();
+            EmotionStatistic statistic = emotionStatistics.get(emotionName);
+            statistic.setTotal(statistic.getTotal() + 1);
+            if (session.isCorrect()) {
+                statistic.setCorrect(statistic.getCorrect() + 1);
+            }
+        }
+
+        long totalGames = sessions.size();
+        long correctAnswers = sessions.stream().filter(FacePhotoGameSession::isCorrect).count();
+        double overallAccuracy = totalGames > 0 ? (double) correctAnswers / totalGames * 100 : 0;
+
+        emotionStatistics.forEach((key, statistic) -> {
+            if (statistic.getTotal() > 0) {
+                statistic.setAccuracy((double) statistic.getCorrect() / statistic.getTotal() * 100);
+            }
+        });
+
+        return GameTypeStatistics.builder()
+                .totalGames(totalGames)
+                .correctAnswers(correctAnswers)
+                .overallAccuracy(overallAccuracy)
+                .emotionStatistics(emotionStatistics)
+                .build();
     }
 
-    private Map<String, Object> convertFacePhotoGameSessionToMap(FacePhotoGameSession session) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("sessionId", session.getId());
-        map.put("gameType", "FACE_PHOTO");
-        map.put("targetEmotion", session.getTargetEmotion().name());
-        map.put("userEmotion", session.getUserEmotion() != null ? session.getUserEmotion().name() : null);
-        map.put("isCorrect", session.isCorrect());
-        map.put("npcID", session.getNpc().getNpcID());
-        map.put("mapID", session.getNpc().getMapID());
-        map.put("createdAt", session.getCreatedAt());
-        map.put("s3ImageKey", session.getS3ImageKey());
-        map.put("confidence", session.getConfidence());
-        return map;
-    }
+
 }
