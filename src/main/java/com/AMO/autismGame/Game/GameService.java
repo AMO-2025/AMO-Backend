@@ -62,12 +62,12 @@ public class GameService {
         }
 
         return EmotionChoiceGameResponseDto.builder()
-            .success(true)
-            .message("감정 선택 게임이 완료되었습니다.")
-            .isCorrect(isCorrect)
-            .targetEmotion(requestDto.getTargetEmotion())
-            .userEmotion(requestDto.getUserEmotion())
-            .build();
+                .success(true)
+                .message("감정 선택 게임이 완료되었습니다.")
+                .isCorrect(isCorrect)
+                .targetEmotion(requestDto.getTargetEmotion())
+                .userEmotion(requestDto.getUserEmotion())
+                .build();
     }
 
     @Transactional
@@ -91,7 +91,7 @@ public class GameService {
 
             if (!isValidBase64Image(requestDto.getImageBase64())) {
                 log.warn("잘못된 Base64 이미지 형식: userIdentifier={}, npcId={}, mapId={}",
-                    member.getUserIdentifier(), npc.getNpcID(), npc.getMapID());
+                        member.getUserIdentifier(), npc.getNpcID(), npc.getMapID());
                 return createFacePhotoErrorResponse("잘못된 이미지 형식입니다. Base64 인코딩을 확인해주세요.");
             }
 
@@ -115,14 +115,14 @@ public class GameService {
             }
 
             return FacePhotoGameResponseDto.builder()
-                .success(true)
-                .message("얼굴 촬영 게임이 완료되었습니다.")
-                .isCorrect(isCorrect)
-                .targetEmotion(requestDto.getTargetEmotion())
-                .userEmotion(requestDto.getUserEmotion())
-                .s3ImageKey(s3ImageKey)
-                .confidence(requestDto.getConfidence())
-                .build();
+                    .success(true)
+                    .message("얼굴 촬영 게임이 완료되었습니다.")
+                    .isCorrect(isCorrect)
+                    .targetEmotion(requestDto.getTargetEmotion())
+                    .userEmotion(requestDto.getUserEmotion())
+                    .s3ImageKey(s3ImageKey)
+                    .confidence(requestDto.getConfidence())
+                    .build();
 
         } catch (Exception e) {
             log.error("얼굴 촬영 게임 처리 중 오류: ", e);
@@ -144,27 +144,27 @@ public class GameService {
 
             if (isCorrect) {
                 s3Key = String.format("game-images/%d/%s/%s/correct/%s.jpg",
-                    member.getId(),
-                    npc.getMapID(),
-                    npc.getNpcID(),
-                    timestamp
+                        member.getId(),
+                        npc.getMapID(),
+                        npc.getNpcID(),
+                        timestamp
                 );
             } else {
                 s3Key = String.format("game-images/%d/%s/%s/incorrect/%s/%s.jpg",
-                    member.getId(),
-                    npc.getMapID(),
-                    npc.getNpcID(),
-                    targetEmotion.name(),
-                    timestamp
+                        member.getId(),
+                        npc.getMapID(),
+                        npc.getNpcID(),
+                        targetEmotion.name(),
+                        timestamp
                 );
             }
 
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-                .bucket(s3Config.getBucketName())
-                .key(s3Key)
-                .contentType("image/jpeg")
-                .contentLength((long) imageBytes.length)
-                .build();
+                    .bucket(s3Config.getBucketName())
+                    .key(s3Key)
+                    .contentType("image/jpeg")
+                    .contentLength((long) imageBytes.length)
+                    .build();
 
             s3Client.putObject(putObjectRequest, RequestBody.fromBytes(imageBytes));
 
@@ -172,10 +172,10 @@ public class GameService {
 
         } catch (Exception e) {
             log.error("S3 업로드 중 오류: base64Length={}, memberId={}, npcId={}, mapId={}",
-                base64Image != null ? base64Image.length() : 0,
-                member.getId(),
-                npc.getNpcID(),
-                npc.getMapID(), e);
+                    base64Image != null ? base64Image.length() : 0,
+                    member.getId(),
+                    npc.getNpcID(),
+                    npc.getMapID(), e);
             throw new RuntimeException("이미지 업로드에 실패했습니다: " + e.getMessage(), e);
         }
     }
